@@ -1,14 +1,13 @@
 import {
-  Bell,
   Menu,
   Search,
-  ChevronDown,
+  LogOut,
 } from "lucide-react";
 
 import { useRole } from "../context/RoleContext";
 
 function Navbar({ onMenuClick }) {
-  const { role, changeRole, currentUser } = useRole();
+  const { role, currentUser, currentOrganization, logout } = useRole();
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-[#E4E0D8] bg-[#F5F3EE]/95 px-4 backdrop-blur-md sm:px-6 lg:px-8">
@@ -44,41 +43,6 @@ function Navbar({ onMenuClick }) {
 
       {/* RIGHT */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Role selector */}
-        <div className="relative">
-          <select
-            value={role}
-            onChange={(e) =>
-              changeRole(e.target.value)
-            }
-            className="appearance-none rounded-xl border border-[#DCD7CE] bg-white py-2.5 pl-3 pr-8 text-xs font-semibold text-[#514E47] outline-none transition hover:bg-[#FAF9F6] focus:border-[#AAA399] sm:text-sm"
-          >
-            <option value="Manager">
-              Manager
-            </option>
-
-            <option value="Developer">
-              Developer
-            </option>
-
-            <option value="Tester">
-              Tester
-            </option>
-          </select>
-
-          <ChevronDown
-            size={13}
-            className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8A857C]"
-          />
-        </div>
-
-        {/* Notifications */}
-        <div aria-label="Notifications" className="relative hidden h-10 w-10 items-center justify-center rounded-xl text-[#65615B] sm:flex">
-          <Bell size={19} />
-
-          <span className="absolute right-[9px] top-[8px] h-2 w-2 rounded-full border-2 border-[#F5F3EE] bg-[#9B4B45]" />
-        </div>
-
         <div className="hidden h-7 w-px bg-[#DDD8CE] lg:block" />
 
         {/* User */}
@@ -93,10 +57,15 @@ function Navbar({ onMenuClick }) {
             </p>
 
             <p className="text-xs text-[#827E76]">
-              {role}
+              {role} {currentOrganization ? `· ${currentOrganization.name}` : ""}
             </p>
           </div>
         </div>
+
+        <button onClick={logout} className="inline-flex items-center gap-2 rounded-xl border border-[#DCD7CE] bg-white px-3 py-2.5 text-xs font-semibold text-[#514E47] transition hover:bg-[#EEE8DD] sm:text-sm" title="Logout">
+          <LogOut size={16} />
+          <span className="hidden sm:inline">Logout</span>
+        </button>
       </div>
     </header>
   );

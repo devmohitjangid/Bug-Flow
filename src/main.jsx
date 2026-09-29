@@ -5,14 +5,14 @@ import "./index.css";
 import App from "./App.jsx";
 
 import { BugProvider } from "./context/BugContext.jsx";
-import { RoleProvider } from "./context/RoleContext.jsx";
+import { AuthProvider } from "./context/RoleContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RoleProvider>
+    <AuthProvider>
       <BugProvider>
         <App />
       </BugProvider>
-    </RoleProvider>
+    </AuthProvider>
   </StrictMode>
 );

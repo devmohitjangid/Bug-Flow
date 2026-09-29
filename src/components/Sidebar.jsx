@@ -5,6 +5,7 @@ import {
   Bug,
   KanbanSquare,
   Plus,
+  Users,
   X,
 } from "lucide-react";
 
@@ -16,7 +17,8 @@ const menuItems = [
 ];
 
 function Sidebar({ isOpen, onClose }) {
-  const { role, currentUser } = useRole();
+  const { role, currentUser, currentOrganization } = useRole();
+  const visibleMenuItems = role === "Manager" ? [...menuItems, { name: "Team Members", path: "/team", icon: Users }] : menuItems;
   return (
     <>
       {/* Mobile overlay */}
@@ -47,8 +49,8 @@ function Sidebar({ isOpen, onClose }) {
               <h1 className="text-lg font-semibold tracking-tight">
                 BugFlow
               </h1>
-              <p className="text-[11px] text-[#9B978F]">
-                Issue Management
+              <p className="max-w-[150px] truncate text-[11px] text-[#9B978F]" title={currentOrganization?.name}>
+                {currentOrganization?.name || "Issue Management"}
               </p>
             </div>
           </div>
@@ -68,7 +70,7 @@ function Sidebar({ isOpen, onClose }) {
           </p>
 
           <nav className="space-y-1.5">
-            {menuItems.map((item) => {
+            {visibleMenuItems.map((item) => {
               const Icon = item.icon;
 
               return (

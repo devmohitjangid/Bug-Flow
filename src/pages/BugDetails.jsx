@@ -6,14 +6,14 @@ import { useBugs } from "../context/BugContext";
 import { useRole } from "../context/RoleContext";
 
 const statuses = ["Open", "Assigned", "In Progress", "Fixed", "Closed"];
-const developers = ["Unassigned", "Rahul Verma", "Ankit Kumar", "Sneha Sharma"];
 const severityStyles = { Critical: "bg-[#F4E4E2] text-[#8B3D37]", High: "bg-[#F4E9DE] text-[#925B32]", Medium: "bg-[#F1EEDC] text-[#756A31]", Low: "bg-[#E7EEE4] text-[#536A4A]" };
 const statusStyles = { Open: "bg-[#EEEAE4] text-[#57534D]", Assigned: "bg-[#EAE6DF] text-[#5C5851]", "In Progress": "bg-[#E7E9E6] text-[#505C54]", Fixed: "bg-[#E6ECE3] text-[#4F6848]", Closed: "bg-[#ECEAE6] text-[#65615A]" };
 
 function BugDetails() {
   const { id } = useParams();
   const { bugs, updateBug, getComments, addComment } = useBugs();
-  const { role, currentUser } = useRole();
+  const { role, currentUser, users } = useRole();
+  const developers = users.filter((user) => user.role === "Developer" && user.organizationId === currentUser.organizationId).map((user) => user.name);
   const bug = bugs.find((item) => item.id === id);
   const [comment, setComment] = useState("");
   const comments = getComments(id);
@@ -23,10 +23,12 @@ function BugDetails() {
 
   const assignDeveloper = (assignee) => {
     if (role !== "Manager" || bug.status !== "Open") return;
-    updateBug(bug.id, { assignee, ...(bug.status === "Open" && assignee !== "Unassigned" ? { status: "Assigned" } : {}) });
+    const developer = users.find((user) => user.role === "Developer" && user.organizationId === currentUser.organizationId && user.name === assignee);
+    updateBug(bug.id, { assigneeId: developer?.id || null, assignee: developer?.name || "Unassigned", ...(bug.status === "Open" && developer ? { status: "Assigned" } : {}) });
   };
   const transition = (nextStatus) => {
-    const developerAllowed = role === "Developer" && bug.assignee === currentUser.name && ((bug.status === "Assigned" && nextStatus === "In Progress") || (bug.status === "In Progress" && nextStatus === "Fixed"));
+    const isAssigned = bug.assigneeId === currentUser.id || (!bug.assigneeId && bug.assignee === currentUser.name);
+    const developerAllowed = role === "Developer" && isAssigned && ((bug.status === "Assigned" && nextStatus === "In Progress") || (bug.status === "In Progress" && nextStatus === "Fixed"));
     const testerAllowed = role === "Tester" && bug.status === "Fixed" && ["Closed", "In Progress"].includes(nextStatus);
     if (developerAllowed || testerAllowed) updateBug(bug.id, { status: nextStatus });
   };
@@ -37,7 +39,7 @@ function BugDetails() {
   };
   const actionContent = () => {
     if (role === "Manager") return <Notice>Assign an open issue to a developer using the assignee control.</Notice>;
-    if (role === "Developer" && bug.assignee !== currentUser.name) return <Notice>Only the assigned developer can update this issue.</Notice>;
+    if (role === "Developer" && !(bug.assigneeId === currentUser.id || (!bug.assigneeId && bug.assignee === currentUser.name))) return <Notice>Only the assigned developer can update this issue.</Notice>;
     if (role === "Developer" && bug.status === "Assigned") return <ActionButton icon={Play} onClick={() => transition("In Progress")}>Start Progress</ActionButton>;
     if (role === "Developer" && bug.status === "In Progress") return <ActionButton icon={Wrench} onClick={() => transition("Fixed")}>Mark as Fixed</ActionButton>;
     if (role === "Tester" && bug.status === "Fixed") return <div className="space-y-2"><ActionButton icon={BadgeCheck} onClick={() => transition("Closed")}>Verify &amp; Close</ActionButton><ActionButton secondary icon={RotateCcw} onClick={() => transition("In Progress")}>Reopen Issue</ActionButton></div>;

@@ -105,7 +105,7 @@ function ReportBug() {
 
     if (!validateForm()) return;
 
-    const newBug = addBug({ ...formData, reporter: currentUser.name });
+    const newBug = addBug({ ...formData, reporter: currentUser.name, reporterId: currentUser.id });
 
     setSubmitted(true);
 

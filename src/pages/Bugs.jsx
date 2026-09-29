@@ -11,9 +11,11 @@ import {
 
 import Layout from "../components/Layout";
 import { useBugs } from "../context/BugContext";
+import { useRole } from "../context/RoleContext";
 
 function Bugs() {
   const { bugs } = useBugs();
+  const { currentUser, users } = useRole();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [severity, setSeverity] = useState("All");
@@ -36,11 +38,10 @@ function Bugs() {
 
   const assignees = [
     "All",
-    ...new Set(
-      bugs
-        .map((bug) => bug.assignee)
-        .filter((name) => name !== "Unassigned")
-    ),
+    ...new Set([
+      ...users.filter((user) => user.role === "Developer" && user.organizationId === currentUser.organizationId).map((user) => user.name),
+      ...bugs.map((bug) => bug.assignee).filter((name) => name !== "Unassigned"),
+    ]),
   ];
 
   const filteredBugs = useMemo(() => {

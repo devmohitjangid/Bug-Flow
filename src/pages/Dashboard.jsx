@@ -14,9 +14,11 @@ import { useBugs } from "../context/BugContext";
 import { useRole } from "../context/RoleContext";
 
 function Dashboard() {
+  
+  
   const { bugs } = useBugs();
   const { role, currentUser } = useRole();
-  const assignedToMe = bugs.filter((bug) => bug.assignee === currentUser.name);
+  const assignedToMe = bugs.filter((bug) => bug.assigneeId === currentUser.id || (!bug.assigneeId && bug.assignee === currentUser.name));
   
   const totalBugs = bugs.length;
 

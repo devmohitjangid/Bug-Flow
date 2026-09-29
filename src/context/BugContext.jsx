@@ -1,21 +1,23 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { bugs as initialBugs } from "../data/mockData";
+import { useAuth } from "./RoleContext";
 
 const BugContext = createContext();
 
 export function BugProvider({ children }) {
+  const { currentUser } = useAuth();
   const [bugs, setBugs] = useState(() => {
     const savedBugs = localStorage.getItem("bugflow-bugs");
 
     if (savedBugs) {
       try {
-        return JSON.parse(savedBugs);
+        return JSON.parse(savedBugs).map((bug) => ({ ...bug, organizationId: bug.organizationId || "demo-org" }));
       } catch {
         return initialBugs;
       }
     }
 
-    return initialBugs;
+    return initialBugs.map((bug) => ({ ...bug, organizationId: "demo-org" }));
   });
 
   const [comments, setComments] = useState(() => {
@@ -48,7 +50,10 @@ export function BugProvider({ children }) {
       severity: bugData.severity,
       status: "Open",
       assignee: "Unassigned",
-      reporter: bugData.reporter || "Mohit Jangid",
+      assigneeId: null,
+      reporter: bugData.reporter || "Unknown user",
+      reporterId: bugData.reporterId || null,
+      organizationId: currentUser?.organizationId || "demo-org",
       createdAt: new Date().toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
@@ -64,7 +69,7 @@ export function BugProvider({ children }) {
   const updateBug = (id, updates) => {
     setBugs((currentBugs) =>
       currentBugs.map((bug) =>
-        bug.id === id ? { ...bug, ...updates } : bug
+        bug.id === id && bug.organizationId === currentUser?.organizationId ? { ...bug, ...updates } : bug
       )
     );
   };
@@ -78,10 +83,12 @@ export function BugProvider({ children }) {
     }));
   }, []);
 
+  const organizationBugs = bugs.filter((bug) => bug.organizationId === currentUser?.organizationId);
+
   return (
     <BugContext.Provider
       value={{
-        bugs,
+        bugs: organizationBugs,
         addBug,
         updateBug,
         getComments,

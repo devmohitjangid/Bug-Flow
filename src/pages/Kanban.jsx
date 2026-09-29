@@ -63,7 +63,7 @@ function Kanban() {
   const isAssignedDeveloper = (bug) => {
     return (
       role === "Developer" &&
-      bug.assignee === currentUser.name
+      bug.assigneeId === currentUser.id || (!bug.assigneeId && bug.assignee === currentUser.name)
     );
   };
 
